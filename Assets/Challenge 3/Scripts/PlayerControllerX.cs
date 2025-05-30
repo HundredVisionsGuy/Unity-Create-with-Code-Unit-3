@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.Controls;
 
@@ -10,6 +11,7 @@ public class PlayerControllerX : MonoBehaviour
     public float floatForce;
     private float gravityModifier = 1.5f;
     private Rigidbody playerRb;
+    public bool isLowEnough;
 
     public ParticleSystem explosionParticle;
     public ParticleSystem fireworksParticle;
@@ -17,6 +19,7 @@ public class PlayerControllerX : MonoBehaviour
     private AudioSource playerAudio;
     public AudioClip moneySound;
     public AudioClip explodeSound;
+    public AudioClip boingSound;
 
 
     // Start is called before the first frame update
@@ -35,10 +38,17 @@ public class PlayerControllerX : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        isLowEnough = transform.position.y < 20;
+
         // While space is pressed and player is low enough, float up
-        if (Input.GetKey(KeyCode.Space) && !gameOver)
+        if (Input.GetKey(KeyCode.Space) && !gameOver && isLowEnough)
         {
             playerRb.AddForce(Vector3.up * floatForce * Time.deltaTime, ForceMode.Impulse);
+        }
+
+        if (!isLowEnough)
+        {
+            playerRb.AddForce(Vector3.down * floatForce * Time.deltaTime, ForceMode.Impulse);
         }
     }
 
@@ -60,9 +70,17 @@ public class PlayerControllerX : MonoBehaviour
             fireworksParticle.Play();
             playerAudio.PlayOneShot(moneySound, 1.0f);
             Destroy(other.gameObject);
-
         }
 
+        // if player bounces off ground
+        else if (other.gameObject.CompareTag("Ground"))
+        {
+            // bounce
+            playerRb.AddForce(Vector3.up * floatForce * 5 * Time.deltaTime, ForceMode.Impulse);
+
+            // boingy sound
+            playerAudio.PlayOneShot(boingSound, 1.0f);
+        }
     }
 
 }
